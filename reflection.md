@@ -9,8 +9,8 @@ I started with five main classes: Task (holds task info like name, time, priorit
 
 **b. Design changes**
 
-- Did your design change during implementation?
-- If yes, describe at least one change and why you made it.
+Yes. I originally planned separate `PlanExplainer` and `TaskFactory` classes, but when I built the app, I realized those were overkill. The Streamlit UI already handles input validation and formatting, and explanations fit naturally into the `ScheduledTask.reason` field, so I merged that logic directly into the Scheduler. Also, I added `ScheduledTask` during implementation—it wasn't in my initial sketch—because I needed a clean output model to display scheduled vs. skipped tasks with their reasoning. This made the plan output much clearer and easier to render in the UI.
+
 
 ---
 
