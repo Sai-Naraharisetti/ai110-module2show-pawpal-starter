@@ -324,6 +324,87 @@ class Scheduler:
         plan.total_minutes = total_minutes
         return plan
     
+    def sort_tasks_by_time(self, scheduled_tasks: List[ScheduledTask]) -> List[ScheduledTask]:
+        """Sort scheduled tasks chronologically by start time.
+        
+        Uses lambda function to parse HH:MM format and sort by minutes since midnight.
+        
+        Args:
+            scheduled_tasks: List of ScheduledTask objects to sort
+            
+        Returns:
+            List of tasks sorted by start time (earliest first)
+        """
+        def time_to_minutes(time_str: str) -> int:
+            """Convert HH:MM format to minutes since midnight."""
+            hours, minutes = map(int, time_str.split(":"))
+            return hours * 60 + minutes
+        
+        return sorted(
+            scheduled_tasks,
+            key=lambda task: time_to_minutes(task.start_label)
+        )
+    
+    def filter_tasks_by_status(self, tasks: List[Task], status: Literal["complete", "incomplete"]) -> List[Task]:
+        """Filter tasks by completion status.
+        
+        Args:
+            tasks: List of tasks to filter
+            status: Status to filter by ('complete' or 'incomplete')
+            
+        Returns:
+            Filtered list of tasks matching the status
+        """
+        return [task for task in tasks if task.completion_status == status]
+    
+    def filter_tasks_by_category(self, tasks: List[Task], category: str) -> List[Task]:
+        """Filter tasks by category.
+        
+        Args:
+            tasks: List of tasks to filter
+            category: Category to filter by
+            
+        Returns:
+            Filtered list of tasks matching the category
+        """
+        return [task for task in tasks if task.category.lower() == category.lower()]
+    
+    def detect_conflicts(self, scheduled_tasks: List[ScheduledTask]) -> List[Dict[str, Any]]:
+        """Detect if any tasks are scheduled at the same time.
+        
+        Lightweight conflict detection: checks for exact start time matches.
+        Returns warnings rather than blocking the schedule.
+        
+        Args:
+            scheduled_tasks: List of scheduled tasks to check
+            
+        Returns:
+            List of conflict warnings (empty if no conflicts)
+        """
+        conflicts = []
+        
+        # Create a mapping of start times to tasks
+        time_map: Dict[str, List[ScheduledTask]] = {}
+        
+        for task in scheduled_tasks:
+            start = task.start_label
+            if start not in time_map:
+                time_map[start] = []
+            time_map[start].append(task)
+        
+        # Find conflicts (multiple tasks at same start time)
+        for start_time, tasks_at_time in time_map.items():
+            if len(tasks_at_time) > 1:
+                task_names = [t.title for t in tasks_at_time]
+                conflicts.append({
+                    "time": start_time,
+                    "task_count": len(tasks_at_time),
+                    "tasks": task_names,
+                    "warning": f"⚠️  {len(tasks_at_time)} tasks scheduled at {start_time}: {', '.join(task_names)}"
+                })
+        
+        return conflicts
+    
     def get_task_summary(self) -> Dict[str, Any]:
         """Get summary of all tasks across all pets.
         

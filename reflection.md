@@ -9,7 +9,7 @@ I started with five main classes: Task (holds task info like name, time, priorit
 
 **b. Design changes**
 
-Yes. I originally planned separate `PlanExplainer` and `TaskFactory` classes, but when I built the app, I realized those were overkill. The Streamlit UI already handles input validation and formatting, and explanations fit naturally into the `ScheduledTask.reason` field, so I merged that logic directly into the Scheduler. Also, I added `ScheduledTask` during implementation—it wasn't in my initial sketch—because I needed a clean output model to display scheduled vs. skipped tasks with their reasoning. This made the plan output much clearer and easier to render in the UI.
+Yes. I originally planned separate PlanExplainer and TaskFactory classes, but when I built the app, I realized those were not needed. The Streamlit UI already handles input validation and formatting, and explanations fit naturally into the ScheduledTask.reason field, so I merged that logic directly into the Scheduler. Also, I added `ScheduledTask` during implementation—it wasn't in my initial sketch—because I needed a clean output model to display scheduled vs. skipped tasks with their reasoning. This made the plan output much clearer and easier to render in the UI.
 
 
 ---
@@ -18,13 +18,11 @@ Yes. I originally planned separate `PlanExplainer` and `TaskFactory` classes, bu
 
 **a. Constraints and priorities**
 
-- What constraints does your scheduler consider (for example: time, priority, preferences)?
-- How did you decide which constraints mattered most?
+My scheduler considers: (1) available time in minutes, (2) task priority (high/medium/low), (3) owner's preferred planning window (morning/afternoon/evening), (4) pet's energy level (high-energy pets fit better with exercise tasks), and (5) task duration. I decided priority and time constraints mattered most because they're most relevant to a pet owner—they need to fit the day and handle urgent care needs first. Energy level and window preference are secondary but improve the schedule's usability.
 
 **b. Tradeoffs**
 
-- Describe one tradeoff your scheduler makes.
-- Why is that tradeoff reasonable for this scenario?
+**Conflict Detection Tradeoff:** My scheduler only detects exact start-time conflicts (two tasks scheduled to begin at the same minute), not overlapping durations. For example, a task from 8:00–8:20 and another from 8:15–8:30 wouldn't be flagged as conflicting. This is reasonable for a pet care app because: (1) tasks are small-granule (most are 5–30 minutes), (2) exact simultaneous starts are the main collision risk for a single pet, and (3) full overlap detection would add complexity and slow scheduling. If the app scaled to multiple simultaneous pets, I'd upgrade to duration-based overlap checks.
 
 ---
 
