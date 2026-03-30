@@ -225,33 +225,71 @@ if st.button("Generate schedule", type="primary"):
             col_metrics[1].metric("Tasks scheduled", len(plan.scheduled))
             col_metrics[2].metric("Tasks skipped", len(plan.skipped))
             
+            # ENHANCEMENT: Sort tasks chronologically using new method
             if plan.scheduled:
-                st.markdown("#### 📅 Scheduled Tasks")
+                sorted_tasks = scheduler.sort_tasks_by_time(plan.scheduled)
+                
+                st.markdown("#### 📅 Scheduled Tasks (Chronological Order)")
                 st.table(
                     [
                         {
+                            "Time": f"{item.start_label}–{item.end_label}",
                             "Task": item.title,
-                            "Start": item.start_label,
-                            "End": item.end_label,
                             "Duration": f"{item.duration_minutes} min",
                             "Priority": item.priority.upper(),
                             "Category": item.category,
                             "Why chosen": item.reason,
                         }
-                        for item in plan.scheduled
+                        for item in sorted_tasks
                     ]
                 )
+                
+                # ENHANCEMENT: Detect and display conflicts using new method
+                conflicts = scheduler.detect_conflicts(plan.scheduled)
+                if conflicts:
+                    st.warning("⚠️ **Scheduling Conflicts Detected**")
+                    for conflict in conflicts:
+                        st.error(
+                            f"🚨 {conflict['warning']}\n\n"
+                            f"**Action needed:** Please review the tasks scheduled at **{conflict['time']}** "
+                            f"and consider adjusting task times or durations."
+                        )
+                else:
+                    st.success("✓ No scheduling conflicts detected!")
             else:
                 st.warning("No tasks could be scheduled with the current constraints.")
             
+            # ENHANCEMENT: Display skipped tasks with filter option
             if plan.skipped:
                 st.markdown("#### ⏭️ Skipped Tasks")
-                st.table(
-                    [
-                        {"Task": item["title"], "Priority": item["priority"].upper(), "Reason": item["reason"]}
-                        for item in plan.skipped
-                    ]
-                )
+                
+                with st.expander("View skipped tasks", expanded=True):
+                    st.table(
+                        [
+                            {"Task": item["title"], "Priority": item["priority"].upper(), "Reason": item["reason"]}
+                            for item in plan.skipped
+                        ]
+                    )
+                
+                # Suggest filtering by status
+                if st.button("Show all incomplete tasks (unscheduled)"):
+                    all_incomplete = scheduler.filter_tasks_by_status(
+                        st.session_state.current_pet.tasks, 
+                        "incomplete"
+                    )
+                    st.info(f"**Found {len(all_incomplete)} incomplete tasks:**")
+                    st.table(
+                        [
+                            {
+                                "Task": t.title,
+                                "Duration": f"{t.duration_minutes} min",
+                                "Priority": t.priority.upper(),
+                                "Category": t.category,
+                                "Status": t.completion_status.upper()
+                            }
+                            for t in all_incomplete
+                        ]
+                    )
         
         except Exception as e:
             st.error(f"Error generating schedule: {str(e)}")
