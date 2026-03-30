@@ -4,8 +4,8 @@
 
 **a. Initial design**
 
-- Briefly describe your initial UML design.
-- What classes did you include, and what responsibilities did you assign to each?
+I started with five main classes: Task (holds task info like name, time, priority), Pet and Owner (store owner/pet details), Scheduler (figures out which tasks fit in the available time and sorts them by priority), and DailyPlan (the final output with scheduled tasks and skipped ones). The Scheduler does the heavy lifting—it scores each task, tries to fit them into the day, and explains why each one was picked or skipped. Everything else is just data containers.
+
 
 **b. Design changes**
 
