@@ -9,7 +9,7 @@ I started with five main classes: Task (holds task info like name, time, priorit
 
 **b. Design changes**
 
-Yes. I originally planned separate PlanExplainer and TaskFactory classes, but when I built the app, I realized those were not needed. The Streamlit UI already handles input validation and formatting, and explanations fit naturally into the ScheduledTask.reason field, so I merged that logic directly into the Scheduler. Also, I added `ScheduledTask` during implementation—it wasn't in my initial sketch—because I needed a clean output model to display scheduled vs. skipped tasks with their reasoning. This made the plan output much clearer and easier to render in the UI.
+Yes. I refined the original design during implementation. I kept `PlanExplainer` and `TaskFactory` as lightweight support classes rather than making them central, and I introduced `ScheduledTask` to represent output rows cleanly (start/end labels, reason, category, priority). I also added `PawPalService` to orchestrate schedule generation between the `Scheduler` and explainer layer. These changes made responsibilities clearer: entities store data, `Scheduler` computes plans, and the service layer coordinates app workflows.
 
 
 ---
@@ -30,13 +30,28 @@ My scheduler considers: (1) available time in minutes, (2) task priority (high/m
 
 **a. How you used AI**
 
-- How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
-- What kinds of prompts or questions were most helpful?
+I used GitHub Copilot throughout the project for code scaffolding, debugging, refactoring, and documentation:
+- Generated class skeletons from UML (`Task`, `Pet`, `Owner`, `Scheduler`, etc.)
+- Helped implement weighted scheduling logic and helper methods
+- Refactored architecture by moving logic from `app.py` into `pawpal_system.py`
+- Generated and expanded test cases in `tests/test_pawpal.py`
+- Suggested Streamlit UI improvements (`st.warning`, `st.success`, `st.expander`)
+- Helped draft docstrings and README feature explanations
+
+The most helpful prompts were specific and constraint-based, for example:
+- "Implement a weighted task scoring method using priority, time window, and duration"
+- "Generate pytest tests for Task, Pet, Owner, and Scheduler methods"
+- "Update Streamlit UI to show sorted tasks and conflict warnings"
 
 **b. Judgment and verification**
 
-- Describe one moment where you did not accept an AI suggestion as-is.
-- How did you evaluate or verify what the AI suggested?
+I did not accept one early suggestion to model task types with a deep inheritance tree (e.g., `UrgentTask`, `FeedingTask`). I kept a single flexible `Task` model instead because it was simpler, easier to test, and avoided duplicated scheduling logic.
+
+I verified AI suggestions by:
+1. Reviewing generated code for design fit and readability
+2. Running `pytest` after each meaningful change
+3. Manually testing the Streamlit app flow (owner/pet/task creation + schedule generation)
+4. Running `main.py` to validate sorting/filtering/conflict behavior end-to-end
 
 ---
 
@@ -44,13 +59,24 @@ My scheduler considers: (1) available time in minutes, (2) task priority (high/m
 
 **a. What you tested**
 
-- What behaviors did you test?
-- Why were these tests important?
+I tested the core behaviors that protect scheduling correctness:
+- Task behavior (`mark_complete`, urgency, time-window matching)
+- Pet task operations (add/remove/retrieve incomplete tasks)
+- Owner aggregation (tasks across multiple pets)
+- Scheduler setup, time formatting, and weighted scoring
+- Empty-input planning edge case
+
+These tests were important because they validate the full data flow from entities to scheduling decisions. They also made refactoring safer by catching regressions quickly.
 
 **b. Confidence**
 
-- How confident are you that your scheduler works correctly?
-- What edge cases would you test next if you had more time?
+I’m highly confident for MVP scope. The suite is stable at **13/13 passing tests**, and manual runs in both `main.py` and Streamlit confirm expected behavior.
+
+If I had more time, I’d test:
+- Overlapping-duration conflicts (not just same start time)
+- Very large task lists (performance and ordering stability)
+- Duplicate task titles and invalid field values
+- Late-day boundary times and constrained schedules with many skipped tasks
 
 ---
 
@@ -58,12 +84,12 @@ My scheduler considers: (1) available time in minutes, (2) task priority (high/m
 
 **a. What went well**
 
-- What part of this project are you most satisfied with?
+The strongest outcome was the architecture split: logic in `pawpal_system.py`, UI in `app.py`, and tests independent from Streamlit. That separation made iteration fast and made the code easier to reason about.
 
 **b. What you would improve**
 
-- If you had another iteration, what would you improve or redesign?
+In a next iteration I’d add persistent storage (SQLite), richer filtering controls in the UI, and smarter conflict resolution suggestions (auto-shift or recommendation engine).
 
 **c. Key takeaway**
 
-- What is one important thing you learned about designing systems or working with AI on this project?
+My key takeaway is that simple domain models plus strong tests lead to better systems. AI accelerates implementation, but quality comes from clear constraints, deliberate design choices, and continuous verification.
