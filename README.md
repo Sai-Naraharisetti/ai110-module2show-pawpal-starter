@@ -22,6 +22,17 @@ Your final app should:
 - Display the plan clearly (and ideally explain the reasoning)
 - Include tests for the most important scheduling behaviors
 
+## Smarter Scheduling Features
+
+**PawPal+** includes intelligent algorithms to improve schedule quality:
+
+- **Chronological Sorting** — Tasks are automatically sorted by start time (HH:MM format) for easy reading
+- **Flexible Filtering** — Filter tasks by status (complete/incomplete) or category (exercise, feeding, grooming, etc.)
+- **Conflict Detection** — Detects when multiple tasks are scheduled at the same start time and warns the user
+- **Priority-Based Ranking** — Uses weighted scoring: priority (1-10), window preference (+5), pet energy level (1-3), and duration penalty
+
+The scheduler respects time constraints (available minutes, breaks between tasks) and adapts to pet energy levels to recommend the best task order.
+
 ## Getting started
 
 ### Setup
